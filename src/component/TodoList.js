@@ -1,38 +1,43 @@
-import React , {useState} from "react";
+import React , {useEffect, useState} from "react";
 import Todo from './Todo';
 import TodoForm from './TodoForm';
-
+import axios from 'axios';
 export default function TodoList(){
   const [todos, setTodos] = useState([]);
 
-  const addTodo = todo => {
-      const newTodos = [todo, ...todos];
-
-      setTodos(newTodos);
+  const addTodo = async (todo) => {
+      const newTodo = todo;
+      const addAPI = await axios.post("http://localhost:3030/todo/addTodo", newTodo)
+      setTodos(addAPI.data);
   }
 
-  const removeTodo = id => {
-      const removeArr = [...todos].filter(todo => todo.id !== id);
+  const removeTodo = async (_id) => {
+      const removeArr = await axios.post("http://localhost:3030/todo/delete", _id);
 
-      setTodos(removeArr);
+      setTodos(removeArr.data);
   }
-  const updateTodo = (todoId, newValue) => {
+  const updateTodo = async (todo) => {
+      console.log("update", todo);
+      const updateTodo = await axios.put("http://localhost:3030/todo/updateTodo", todo);
 
-    if(!newValue.text || /^\s*$/.test(newValue.text)) {
-        return; 
-    }
-
-    setTodos(prev => prev.map(item => (item.id === todoId ? newValue : item)))
+    setTodos(updateTodo.data);
 }
-  const completeTodo = id => {
-      let updatedTodos = todos.map(todo => {
-          if(todo.id === id){
-              todo.isComplete = !todo.isComplete
-          }
-          return todos;
-      })
-      setTodos(updatedTodos)
+  const completeTodo = async (todo) => {
+    console.log("update", todo);
+    const updateTodo = await axios.put("http://localhost:3030/todo/checkComplete", todo);
+    setTodos(updateTodo.data);
   }
+
+  useEffect( () => {
+      async function fetchData(){
+          console.log("fetch data")
+        const res = await axios.get("http://localhost:3030/todo/findAll");
+        console.log("res", res.data);
+        setTodos(res.data);
+      }
+      fetchData();
+  }, [])
+
   return (
     <div>
         <h1>List Todo</h1>
